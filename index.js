@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const { db } = require('./db');
 
 const app = express();
 
@@ -7,6 +8,8 @@ app.use(bodyParser.json());
 
 app.use('/api/v1', require('./routes/api'));
 
-app.listen(process.env.port || 1234, function() {
-  console.log('Listening for requests');
+db.sync({ logging: false }).then(function() {
+  app.listen(process.env.port || 1234, function() {
+    console.log('Listening for requests');
+  });
 });
