@@ -1,10 +1,12 @@
 const express = require('express');
 const validate = require('express-validation');
-var validation = require('../validation/question.js');
+const questionValidation = require('../validation/question.js');
+const queryValidation = require('../validation/query.js');
 const url = require('url');
 const router = express.Router();
 const { Questions, Answers } = require('../db');
 const bcrypt = require('bcrypt');
+var Joi = require('joi');
 
 const hash = '$2b$10$PjqecawtIkC0tAPJhKjHGOH7N8KyZuhMNoQtP79fE.zGnoHnbjuxe';
 
@@ -14,7 +16,7 @@ validate.options({
 });
 
 // Adding of a question
-router.post('/questions', validate(validation), function(req, res) {
+router.post('/questions', validate(questionValidation), function(req, res) {
   const { password, question, subjectId, level, answers } = req.body;
   bcrypt.compare(password, hash).then(function(pass) {
     if (pass) {
@@ -81,23 +83,25 @@ router.get('/questions/:id', function(req, res) {
 
 //Getting of a questions by creterias
 // e.g. http://localhost:1234/api/v1/questions?quantity=50&level=3&subjectId=1&start=10
-router.get('/questions', function(req, res) {
+router.get('/questions', validate(queryValidation), function(req, res) {
   const url_parts = url.parse(req.url, true);
   const query = url_parts.query;
-  const where = {};
-  if (query.level) where.level = query.level;
-  if (query.subjectId) where.subjectId = query.subjectId;
-  Questions.findAll({ where, include: [Answers] })
+  const result = Joi.validate(query, queryValidation);
+  if (result.error) {
+    res.send(result.error.details[0].message);
+    return;
+  }
+  const params = {
+    where: {},
+    include: [Answers],
+  };
+  if (query.level) params.where.level = query.level;
+  if (query.subjectId) params.where.subjectId = query.subjectId;
+  if (query.start) params.offset = parseInt(query.start);
+  if (query.quantity) params.limit = parseInt(query.quantity);
+  console.log(params);
+  Questions.findAll(params)
     .then(questions => {
-      const start = query.start || 0;
-      const quantity = query.quantity || questions.length;
-      if (query.start || query.quantity) {
-        questions = questions.slice(
-          start,
-          parseInt(start) + parseInt(quantity)
-        );
-      }
-      questions = questions.map(question => question.dataValues);
       res.send(questions);
     })
     .catch(e => {
