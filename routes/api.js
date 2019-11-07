@@ -6,9 +6,7 @@ const url = require('url');
 const router = express.Router();
 const { Questions, Answers } = require('../db');
 const bcrypt = require('bcrypt');
-var Joi = require('joi');
-
-const hash = '$2b$10$PjqecawtIkC0tAPJhKjHGOH7N8KyZuhMNoQtP79fE.zGnoHnbjuxe';
+const { HOST, PORT, HASH } = require('../constants');
 
 validate.options({
   status: 422,
@@ -17,37 +15,12 @@ validate.options({
 
 // Adding of a question
 router.post('/questions', validate(questionValidation), function(req, res) {
-  const { password, question, subjectId, level, answers } = req.body;
-  bcrypt.compare(password, hash).then(function(pass) {
+  bcrypt.compare(req.body.password, HASH).then(function(pass) {
     if (pass) {
-      Questions.create(
-        {
-          question,
-          subjectId,
-          level,
-          answers: [
-            {
-              answer: answers[0].answer,
-              isCorrect: answers[0].isCorrect,
-            },
-            {
-              answer: answers[1].answer,
-              isCorrect: answers[1].isCorrect,
-            },
-            {
-              answer: answers[2].answer,
-              isCorrect: answers[2].isCorrect,
-            },
-            {
-              answer: answers[3].answer,
-              isCorrect: answers[3].isCorrect,
-            },
-          ],
-        },
-        {
-          include: [Answers],
-        }
-      ).catch(e => {
+      //TODO add validation that only one answer is correct and that there are no identical answers
+      Questions.create(req.body, {
+        include: [Answers],
+      }).catch(e => {
         console.error('Error: ', e.message);
       });
       res.status(200).send('Ok');
@@ -96,7 +69,19 @@ router.get('/questions', validate(queryValidation), function(req, res) {
   if (query.quantity) params.limit = parseInt(query.quantity);
   Questions.findAll(params)
     .then(questions => {
-      res.send(questions);
+      let nextPage;
+      if (query.start && query.quantity) {
+        nextPage = `http://${HOST}:${PORT}/api/v1/questions?quantity=${
+          query.quantity
+        }&start=${+query.quantity + +query.start}`;
+        if (query.level) {
+          nextPage += `&level=${query.level}`;
+        }
+        if (query.subjectId) {
+          nextPage += `&subjectId=${query.subjectId}`;
+        }
+      }
+      res.send({ questions, nextPage });
     })
     .catch(e => {
       console.error('Error: ', e.message);

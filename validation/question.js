@@ -1,6 +1,5 @@
-var Joi = require('joi');
-
-const SUBJECTS_AMOUNT = 3;
+const Joi = require('joi');
+const { SUBJECTS_AMOUNT } = require('../constants');
 
 module.exports = {
   body: {
