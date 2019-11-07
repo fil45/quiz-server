@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { db } = require('./db');
+const generateData = require('./generator');
 
 const app = express();
 
@@ -13,3 +14,5 @@ db.sync({ logging: false }).then(function() {
     console.log('Listening for requests');
   });
 });
+
+//setTimeout(generateData, 3000, 10);

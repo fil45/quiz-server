@@ -7,7 +7,7 @@ lorem = lorem.replace(/\.|\,/g, '');
 let loremArr = lorem.toLowerCase().split(' ');
 
 const randAB = function(a, b) {
-  return Math.floor(Math.random() * (+b - +a)) + +a;
+  return Math.floor(Math.random() * (b - a)) + a;
 };
 
 const rand = function(n) {
@@ -42,34 +42,28 @@ const getRandomCorrect = function() {
   return arr;
 };
 
+const getRandomAnswers = function(n) {
+  let arr = [];
+  let correct = getRandomCorrect();
+  for (let i = 0; i < n; i++) {
+    arr.push({
+      answer: getRandomAnswer(),
+      isCorrect: correct[i],
+    });
+  }
+  return arr;
+};
+
 let generateData = function(n) {
   for (let q = 0; q < n; q++) {
     for (let i = 1; i < 4; i++) {
       for (let j = 1; j < 4; j++) {
-        correct = getRandomCorrect();
         Questions.create(
           {
             question: getRandomQuestion(),
             subjectId: i,
             level: j,
-            answers: [
-              {
-                answer: getRandomAnswer(),
-                isCorrect: correct[0],
-              },
-              {
-                answer: getRandomAnswer(),
-                isCorrect: correct[1],
-              },
-              {
-                answer: getRandomAnswer(),
-                isCorrect: correct[2],
-              },
-              {
-                answer: getRandomAnswer(),
-                isCorrect: correct[3],
-              },
-            ],
+            answers: getRandomAnswers(4),
           },
           {
             include: [Answers],
