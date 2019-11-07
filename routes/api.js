@@ -19,10 +19,14 @@ router.post('/questions', validate(questionValidation), function(req, res) {
     if (pass) {
       Questions.create(req.body, {
         include: [Answers],
-      }).catch(e => {
-        console.error('Error: ', e.message);
+      })
+      .then(_ => {
+        res.status(200).send('Ok');
+      })
+      .catch(e => {
+        res.status(500).send('Server error');
+        console.error('Error: ', e);
       });
-      res.status(200).send('Ok');
     } else {
       res.status(401).send('Invalid password');
     }
@@ -44,12 +48,14 @@ router.get('/questions/:id', function(req, res) {
             res.send(question);
           })
           .catch(e => {
-            console.error('Error: ', e.message);
+            res.status(500).send('Server error');
+            console.error('Error: ', e);
           });
       }
     })
     .catch(e => {
-      console.error('Error: ', e.message);
+      res.status(500).send('Server error');
+      console.error('Error: ', e);
     });
 });
 
@@ -82,7 +88,8 @@ router.get('/questions', validate(queryValidation), function(req, res) {
       res.send({ questions, nextPage });
     })
     .catch(e => {
-      console.error('Error: ', e.message);
+      res.status(500).send('Server error');
+      console.error('Error: ', e);
     });
 });
 

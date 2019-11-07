@@ -3,6 +3,7 @@ const { SUBJECTS_AMOUNT } = require('../constants');
 
 module.exports = {
   body: {
+    id: Joi.any().forbidden(),
     password: Joi.string().required(),
     question: Joi.string().required(),
     subjectId: Joi.number()
@@ -19,8 +20,10 @@ module.exports = {
       .length(4)
       .required()
       .items({
+        id: Joi.any().forbidden(),
         answer: Joi.string().required(),
         isCorrect: Joi.boolean().required(),
+        questionId: Joi.any().forbidden(),
       })
       .unique((a, b) => a.answer === b.answer)  //validation that there are no identical answers
       .unique((a, b) => a.isCorrect && b.isCorrect), //validation that only one answer is correct
