@@ -86,11 +86,6 @@ router.get('/questions/:id', function(req, res) {
 router.get('/questions', validate(queryValidation), function(req, res) {
   const url_parts = url.parse(req.url, true);
   const query = url_parts.query;
-  const result = Joi.validate(query, queryValidation);
-  if (result.error) {
-    res.send(result.error.details[0].message);
-    return;
-  }
   const params = {
     where: {},
     include: [Answers],
@@ -99,7 +94,6 @@ router.get('/questions', validate(queryValidation), function(req, res) {
   if (query.subjectId) params.where.subjectId = query.subjectId;
   if (query.start) params.offset = parseInt(query.start);
   if (query.quantity) params.limit = parseInt(query.quantity);
-  console.log(params);
   Questions.findAll(params)
     .then(questions => {
       res.send(questions);
