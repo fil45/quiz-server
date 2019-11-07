@@ -16,6 +16,6 @@ module.exports = {
       .max(SUBJECTS_AMOUNT),
     start: Joi.number()
       .integer()
-      .min(1),
+      .min(0),
   },
 };

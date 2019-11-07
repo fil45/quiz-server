@@ -21,6 +21,8 @@ module.exports = {
       .items({
         answer: Joi.string().required(),
         isCorrect: Joi.boolean().required(),
-      }),
+      })
+      .unique((a, b) => a.answer === b.answer)  //validation that there are no identical answers
+      .unique((a, b) => a.isCorrect && b.isCorrect), //validation that only one answer is correct
   },
 };
