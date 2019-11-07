@@ -17,7 +17,6 @@ validate.options({
 router.post('/questions', validate(questionValidation), function(req, res) {
   bcrypt.compare(req.body.password, HASH).then(function(pass) {
     if (pass) {
-      //TODO add validation that only one answer is correct and that there are no identical answers
       Questions.create(req.body, {
         include: [Answers],
       }).catch(e => {
@@ -57,28 +56,27 @@ router.get('/questions/:id', function(req, res) {
 //Getting of a questions by creterias
 // e.g. http://localhost:1234/api/v1/questions?quantity=50&level=3&subjectId=1&start=10
 router.get('/questions', validate(queryValidation), function(req, res) {
-  const url_parts = url.parse(req.url, true);
-  const query = url_parts.query;
+  const {quantity, start, level, subjectId} = url.parse(req.url, true).query;
   const params = {
     where: {},
     include: [Answers],
   };
-  if (query.level) params.where.level = query.level;
-  if (query.subjectId) params.where.subjectId = query.subjectId;
-  if (query.start) params.offset = parseInt(query.start);
-  if (query.quantity) params.limit = parseInt(query.quantity);
+  if (level) params.where.level = level;
+  if (subjectId) params.where.subjectId = subjectId;
+  if (start) params.offset = parseInt(start);
+  if (quantity) params.limit = parseInt(quantity);
   Questions.findAll(params)
     .then(questions => {
       let nextPage;
-      if (query.quantity) {
+      if (quantity) {
         nextPage = `http://${HOST}:${PORT}/api/v1/questions?quantity=${
-          query.quantity
-        }&start=${query.start?+query.quantity + +query.start:query.quantity}`;
-        if (query.level) {
-          nextPage += `&level=${query.level}`;
+          quantity
+        }&start=${start?+quantity + +start:quantity}`;
+        if (level) {
+          nextPage += `&level=${level}`;
         }
-        if (query.subjectId) {
-          nextPage += `&subjectId=${query.subjectId}`;
+        if (subjectId) {
+          nextPage += `&subjectId=${subjectId}`;
         }
       }
       res.send({ questions, nextPage });
