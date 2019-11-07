@@ -70,10 +70,10 @@ router.get('/questions', validate(queryValidation), function(req, res) {
   Questions.findAll(params)
     .then(questions => {
       let nextPage;
-      if (query.start && query.quantity) {
+      if (query.quantity) {
         nextPage = `http://${HOST}:${PORT}/api/v1/questions?quantity=${
           query.quantity
-        }&start=${+query.quantity + +query.start}`;
+        }&start=${query.start?+query.quantity + +query.start:query.quantity}`;
         if (query.level) {
           nextPage += `&level=${query.level}`;
         }
