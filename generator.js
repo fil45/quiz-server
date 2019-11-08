@@ -1,5 +1,17 @@
 const { Questions, Answers } = require('./db');
 
+const subject = {
+  1: 'Math',
+  2: 'Physics',
+  3: 'Chemistry',
+};
+
+const level = {
+  1: 'Low',
+  2: 'Average',
+  3: 'High',
+};
+
 //Generation of testing data
 let lorem =
   "From i made. Stars firmament had midst after let can't upon forth created. Kind the itself every divide darkness herb to. Were. Heaven. Dry divided signs signs. Lights divided. Saying fifth likeness years is third brought. Divide abundantly evening every wherein. Moved man likeness is Given fifth, place said have itself us had beast deep abundantly beast over the form divide. Female signs evening said gathered fowl multiply yielding that. Years under said god you'll very tree, great creeping day midst saw grass after. Together days man fowl forth signs let bearing blessed, you're fly. Created above above living herb appear behold us, multiply subdue creature evening fill it the greater, you'll stars behold great to us yielding life days morning given darkness doesn't.";
@@ -54,16 +66,26 @@ const getRandomAnswers = function(n) {
   return arr;
 };
 
+const getCorrectAnswer = function(answers) {
+  return answers.reduce((correct, answer) => {
+    return answer.isCorrect ? (correct += answer.answer) : correct;
+  }, '');
+};
+
 let generateData = function(n) {
   for (let q = 0; q < n; q++) {
     for (let i = 1; i < 4; i++) {
       for (let j = 1; j < 4; j++) {
+        let randomAnswers = getRandomAnswers(4);
+        let correct = getCorrectAnswer(randomAnswers);
         Questions.create(
           {
-            question: getRandomQuestion(),
+            question: `${subject[i]}; ${
+              level[j]
+            }; Correct: ${correct}; Question: ${getRandomQuestion()}`,
             subjectId: i,
             level: j,
-            answers: getRandomAnswers(4),
+            answers: randomAnswers,
           },
           {
             include: [Answers],
