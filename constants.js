@@ -7,4 +7,5 @@ module.exports = {
   DB_NAME: 'quiz',
   DB_USER: 'root',
   DB_PASSWORD: '12345678',
+  TIME_PER_QUESTION: 5000,
 };

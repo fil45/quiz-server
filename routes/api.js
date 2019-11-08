@@ -6,10 +6,10 @@ const queryValidation = require('../validation/query.js');
 const updateValidation = require('../validation/update.js');
 const validateAnswersUpdate = require('../validation/answers.js');
 const startValidation = require('../validation/start.js');
-const url = require('url');
+const endValidation = require('../validation/end.js');
 const { Questions, Answers } = require('../db');
 const bcrypt = require('bcrypt');
-const { HOST, PORT, HASH } = require('../constants');
+const { HOST, PORT, HASH, TIME_PER_QUESTION } = require('../constants');
 
 const router = express.Router();
 
@@ -66,7 +66,7 @@ router.get('/questions/:id', function(req, res) {
 //Getting of a questions by creterias
 // e.g. http://localhost:1234/api/v1/questions?quantity=50&level=3&subjectId=1&start=10
 router.get('/questions', validate(queryValidation), function(req, res) {
-  const { quantity, start, level, subjectId } = url.parse(req.url, true).query;
+  const { quantity, start, level, subjectId } = req.query;
   const params = {
     where: {},
     include: [Answers],
@@ -152,7 +152,7 @@ router.put('/questions', validate(updateValidation), function(req, res) {
 
 //Test begining
 router.get('/start', validate(startValidation), function(req, res) {
-  const { quantity, level, subjectId } = url.parse(req.url, true).query;
+  const { quantity, level, subjectId } = req.query;
   const params = {
     where: {},
     include: [Answers],
@@ -165,21 +165,17 @@ router.get('/start', validate(startValidation), function(req, res) {
     .then(questions => {
       const testId = Date.now();
       ongoingTests[testId] = { questions };
+
       //removing the correctness from the questions
-      questions.forEach(q => {
-        const { answers } = q.dataValues;
-        answers.forEach(a => {
-          return a.dataValues;
-        });
-        return q.dataValues;
-      });
       const clonedQuestions = JSON.parse(JSON.stringify(questions));
       clonedQuestions.forEach(q => {
         q.answers.forEach(a => {
           delete a.isCorrect;
         });
       });
-      res.status(200).send({ testId, questions: clonedQuestions });
+
+      const time = TIME_PER_QUESTION * quantity;
+      res.status(200).send({ testId, time, questions: clonedQuestions });
       return;
     })
     .catch(e => {
@@ -190,8 +186,67 @@ router.get('/start', validate(startValidation), function(req, res) {
 });
 
 //Test ending
-router.post('/end', function(req, res) {
-  res.send(ongoingTests);
+router.post('/end', validate(endValidation), function(req, res) {
+  if (!ongoingTests[req.body.testId]) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  //check that the request contains right quantity of questions
+  const quantity = ongoingTests[req.body.testId].questions.length;
+  if (req.body.questions.length !== quantity) {
+    res.status(422).send('Incorrect number of questions in the request');
+    return;
+  }
+
+  //check that all question ids are unique
+  const questionsIds = req.body.questions.map(question => question.id);
+  const idSet = new Set(questionsIds);
+  if (idSet.size !== quantity) {
+    res.status(422).send('All questions ids must be unique');
+    return;
+  }
+
+  //check that the request contains all the necessary question ids and correct answer ids and calculate right answered questions
+  const answeredQuestions = req.body.questions;
+  let askedQuestions = ongoingTests[req.body.testId].questions;
+  askedQuestions = askedQuestions.map(q => {
+    const { answers } = q.dataValues;
+    answers.map(a => {
+      return a.dataValues;
+    });
+    return q.dataValues;
+  });
+  let rightAnswered = 0;
+  for (let i = 0; i < quantity; i++) {
+    let questionFounded = false;
+    let answerFounded = false;
+    for (let j = 0; j < quantity; j++) {
+      if (askedQuestions[i].id === answeredQuestions[j].id) {
+        questionFounded = true;
+        askedQuestions[i].answers.forEach(answer => {
+          if (answer.id === answeredQuestions[j].answerId) {
+            answerFounded = true;
+            if (answer.isCorrect) ++rightAnswered;
+          }
+        });
+        break;
+      }
+    }
+    if (!questionFounded) {
+      res.status(422).send('Wrong question id');
+      return;
+    }
+    if (!answerFounded) {
+      res.status(422).send('Wrong answer id');
+      return;
+    }
+  }
+
+  delete ongoingTests[req.body.testId];
+  const failed = Date.now() > req.body.testId + TIME_PER_QUESTION * quantity;
+  const success = Math.round((rightAnswered * 100) / quantity);
+  res.status(200).send({ success, failed });
 });
 
 module.exports = router;
