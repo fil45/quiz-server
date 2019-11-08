@@ -1,15 +1,19 @@
 const express = require('express');
+const Sequelize = require('sequelize');
 const validate = require('express-validation');
 const questionValidation = require('../validation/question.js');
 const queryValidation = require('../validation/query.js');
 const updateValidation = require('../validation/update.js');
 const validateAnswersUpdate = require('../validation/answers.js');
+const startValidation = require('../validation/start.js');
 const url = require('url');
 const { Questions, Answers } = require('../db');
 const bcrypt = require('bcrypt');
 const { HOST, PORT, HASH } = require('../constants');
 
 const router = express.Router();
+
+const ongoingTests = {};
 
 validate.options({
   status: 422,
@@ -25,13 +29,16 @@ router.post('/questions', validate(questionValidation), function(req, res) {
       })
         .then(_ => {
           res.status(200).send('Ok');
+          return;
         })
         .catch(e => {
           res.status(500).send('Server error');
           console.error('Error: ', e);
+          return;
         });
     } else {
       res.status(401).send('Invalid password');
+      return;
     }
   });
 });
@@ -43,13 +50,16 @@ router.get('/questions/:id', function(req, res) {
       if (question) {
         question = question.dataValues;
         res.status(200).send(question);
+        return;
       } else {
         res.status(404).send('Not found');
+        return;
       }
     })
     .catch(e => {
       res.status(500).send('Server error');
       console.error('Error: ', e);
+      return;
     });
 });
 
@@ -80,10 +90,12 @@ router.get('/questions', validate(queryValidation), function(req, res) {
         }
       }
       res.status(200).send({ questions, nextPage });
+      return;
     })
     .catch(e => {
       res.status(500).send('Server error');
       console.error('Error: ', e);
+      return;
     });
 });
 
@@ -124,6 +136,7 @@ router.put('/questions', validate(updateValidation), function(req, res) {
             .catch(e => {
               res.status(500).send('Server error');
               console.error('Error: ', e);
+              return;
             });
         } else {
           res.status(404).send('Not found');
@@ -138,13 +151,47 @@ router.put('/questions', validate(updateValidation), function(req, res) {
 });
 
 //Test begining
-router.get('/start', function(req, res) {
-  res.send({ type: 'GET' });
+router.get('/start', validate(startValidation), function(req, res) {
+  const { quantity, level, subjectId } = url.parse(req.url, true).query;
+  const params = {
+    where: {},
+    include: [Answers],
+    order: Sequelize.literal('rand()'),
+  };
+  if (level) params.where.level = level;
+  if (subjectId) params.where.subjectId = subjectId;
+  if (quantity) params.limit = parseInt(quantity);
+  Questions.findAll(params)
+    .then(questions => {
+      const testId = Date.now();
+      ongoingTests[testId] = { questions };
+      //removing the correctness from the questions
+      questions.forEach(q => {
+        const { answers } = q.dataValues;
+        answers.forEach(a => {
+          return a.dataValues;
+        });
+        return q.dataValues;
+      });
+      const clonedQuestions = JSON.parse(JSON.stringify(questions));
+      clonedQuestions.forEach(q => {
+        q.answers.forEach(a => {
+          delete a.isCorrect;
+        });
+      });
+      res.status(200).send({ testId, questions: clonedQuestions });
+      return;
+    })
+    .catch(e => {
+      res.status(500).send('Server error');
+      console.error('Error: ', e);
+      return;
+    });
 });
 
 //Test ending
 router.post('/end', function(req, res) {
-  res.send({ type: 'POST' });
+  res.send(ongoingTests);
 });
 
 module.exports = router;
