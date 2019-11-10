@@ -3,9 +3,11 @@ const bodyParser = require('body-parser');
 const { db } = require('./db');
 const generateData = require('./generator');
 const { PORT } = require('./constants');
+const cors = require('cors')
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/api/v1', require('./routes/api'));
