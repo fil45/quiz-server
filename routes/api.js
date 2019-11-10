@@ -220,13 +220,11 @@ router.post('/end', validate(endValidation), function(req, res) {
   let rightAnswered = 0;
   for (let i = 0; i < quantity; i++) {
     let questionFounded = false;
-    let answerFounded = false;
     for (let j = 0; j < quantity; j++) {
       if (askedQuestions[i].id === answeredQuestions[j].id) {
         questionFounded = true;
         askedQuestions[i].answers.forEach(answer => {
           if (answer.id === answeredQuestions[j].answerId) {
-            answerFounded = true;
             if (answer.isCorrect) ++rightAnswered;
           }
         });
@@ -235,10 +233,6 @@ router.post('/end', validate(endValidation), function(req, res) {
     }
     if (!questionFounded) {
       res.status(422).send('Wrong question id');
-      return;
-    }
-    if (!answerFounded) {
-      res.status(422).send('Wrong answer id');
       return;
     }
   }

@@ -67,9 +67,7 @@ const getRandomAnswers = function(n) {
 };
 
 const getCorrectAnswer = function(answers) {
-  return answers.reduce((correct, answer) => {
-    return answer.isCorrect ? (correct += answer.answer) : correct;
-  }, '');
+  return answers.filter(a => a.isCorrect)[0].answer
 };
 
 let generateData = function(n) {

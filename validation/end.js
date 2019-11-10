@@ -12,8 +12,7 @@ module.exports = {
           .integer()
           .required(),
         answerId: Joi.number()
-          .integer()
-          .required(),
+          .integer(),
       }),
   },
 };
