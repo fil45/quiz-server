@@ -1,14 +1,22 @@
 const Sequelize = require('sequelize');
-const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD } = require('./constants');
+const DB_HOST = process.env.DB_HOST;
+const DB_NAME = process.env.DB_NAME;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const ENV = process.env.ENV;
 
 const db = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
   dialect: 'mysql',
+  logging: false,
 });
 
 db.authenticate()
   .then(() => {
-    console.log('Connection has been established successfully.');
+    db.sync({ logging: false }).then(() => {
+      if (ENV !== 'testing')
+        console.log('Connection has been established successfully.');
+    });
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);

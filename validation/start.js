@@ -5,17 +5,18 @@ module.exports = {
   query: {
     quantity: Joi.number()
       .integer()
-      .min(1),
+      .required()
+      .min(1)
+      .max(50),
     level: Joi.number()
       .integer()
+      .required()
       .min(1)
       .max(3),
     subjectId: Joi.number()
       .integer()
+      .required()
       .min(1)
       .max(Number(SUBJECTS_AMOUNT)),
-    start: Joi.number()
-      .integer()
-      .min(0),
   },
 };

@@ -1,15 +1,16 @@
 const Joi = require('joi');
-const { SUBJECTS_AMOUNT } = require('../constants');
+const SUBJECTS_AMOUNT = process.env.SUBJECTS_AMOUNT;
 
 module.exports = {
   body: {
+    id: Joi.any().forbidden(),
     password: Joi.string().required(),
     question: Joi.string().required(),
     subjectId: Joi.number()
       .integer()
       .required()
       .min(1)
-      .max(SUBJECTS_AMOUNT),
+      .max(Number(SUBJECTS_AMOUNT)),
     level: Joi.number()
       .integer()
       .required()
@@ -19,10 +20,12 @@ module.exports = {
       .length(4)
       .required()
       .items({
+        id: Joi.any().forbidden(),
         answer: Joi.string().required(),
         isCorrect: Joi.boolean().required(),
+        questionId: Joi.any().forbidden(),
       })
-      .unique((a, b) => a.answer === b.answer)  //validation that there are no identical answers
+      .unique((a, b) => a.answer === b.answer) //validation that there are no identical answers
       .unique((a, b) => a.isCorrect && b.isCorrect), //validation that only one answer is correct
   },
 };
