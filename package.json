@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "env-cmd -f ./config/dev.env nodemon",
+    "test": "env-cmd -f ./config/test.env jest --watch"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -20,13 +23,19 @@
   "dependencies": {
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "env-cmd": "^10.0.1",
     "express": "^4.17.1",
     "express-validation": "^1.0.3",
     "joi": "^14.3.1",
+    "lodash": "^4.17.15",
     "mysql2": "^2.0.0",
     "sequelize": "^5.21.2"
   },
   "devDependencies": {
-    "nodemon": "^1.19.4"
+    "jest": "^24.9.0",
+    "nodemon": "^1.19.4",
+    "sequelize-mock": "^0.10.2",
+    "supertest": "^4.0.2"
   }
 }
