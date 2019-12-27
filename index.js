@@ -1,20 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { db } = require('./db');
+const app = require('./app');
 const generateData = require('./generator');
-const { PORT } = require('./constants');
-const cors = require('cors')
+const PORT = process.env.PORT;
 
-const app = express();
-
-app.use(cors());
-app.use(bodyParser.json());
-
-app.use('/api/v1', require('./routes/api'));
-db.sync({ logging: false }).then(function() {
-  app.listen(process.env.port || PORT, function() {
-    console.log('Listening for requests');
-  });
+app.listen(PORT, function() {
+  console.log('Listening for requests on port', PORT);
 });
 
-//setTimeout(generateData, 3000, 10);
+// setTimeout(generateData, 3000, 10);

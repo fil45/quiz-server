@@ -1,3 +1,8 @@
+const ENV = process.env.ENV;
+if (ENV == 'testing') {
+  jest.mock('../db');
+}
+
 const express = require('express');
 const Sequelize = require('sequelize');
 const validate = require('express-validation');
@@ -9,7 +14,10 @@ const startValidation = require('../validation/start.js');
 const endValidation = require('../validation/end.js');
 const { Questions, Answers } = require('../db');
 const bcrypt = require('bcrypt');
-const { HOST, PORT, HASH, TIME_PER_QUESTION } = require('../constants');
+const HOST = process.env.HOST;
+const PORT = process.env.PORT;
+const HASH = process.env.HASH;
+const TIME_PER_QUESTION = process.env.TIME_PER_QUESTION;
 
 const router = express.Router();
 

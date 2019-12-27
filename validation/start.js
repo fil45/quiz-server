@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { SUBJECTS_AMOUNT } = require('../constants');
+const SUBJECTS_AMOUNT = process.env.SUBJECTS_AMOUNT;
 
 module.exports = {
   query: {
@@ -17,6 +17,6 @@ module.exports = {
       .integer()
       .required()
       .min(1)
-      .max(SUBJECTS_AMOUNT),
+      .max(Number(SUBJECTS_AMOUNT)),
   },
 };
