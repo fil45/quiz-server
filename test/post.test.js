@@ -85,7 +85,11 @@ describe('POSTing a question...', function() {
     await test(question, 422);
   });
 
-  // it('should return 500 if there is no connection with db', async function() {
-  //   await test(question, 500);
-  // });
+  it('should return 500 if there is no connection with db', async function() {
+    Questions.$queueFailure(new Error('My test error'));
+    await request(app)
+      .post('/api/v1/questions')
+      .send(null)
+      .expect(500);
+  });
 });

@@ -1,55 +1,31 @@
 var SequelizeMock = require('sequelize-mock');
 var dbMock = new SequelizeMock();
+const question = require('./question.js');
 
-const Questions = dbMock.define(
-  'questions',
-  [
-    {
-      id: 1,
-      question: '12345',
-      subjectId: 1,
-      level: 1,
-    },
-    {
-      id: 2,
-      question: '456789',
-      subjectId: 2,
-      level: 2,
-    },
-  ],
-  { timestamps: false }
-);
+const Questions = dbMock.define('questions', {}, { timestamps: false });
+const Answers = dbMock.define('answers', {}, { timestamps: false });
 
-const Answers = dbMock.define(
-  'answers',
-  [
-    {
-      id: 1,
-      answer: '1234',
-      isCorrect: 1,
-      questionId: 1,
-    },
-    {
-      id: 2,
-      answer: '1234',
-      isCorrect: 0,
-      questionId: 1,
-    },
-    {
-      id: 3,
-      answer: '1234',
-      isCorrect: 0,
-      questionId: 1,
-    },
-    {
-      id: 4,
-      answer: '1234',
-      isCorrect: 0,
-      questionId: 1,
-    },
-  ],
-  { timestamps: false }
-);
+Questions.$queryInterface.$useHandler(function(query, queryOptions) {
+  if (query === 'findOne') {
+    if (queryOptions[0].where.id === '99') {
+      if (queryOptions[0].include) {
+        return Questions.build(question);
+      }
+      const questionWoAnswers = _.cloneDeep(question);
+      delete questionWoAnswers.answers;
+      return Questions.build(questionWoAnswers);
+    } else {
+      return null;
+    }
+  }
+});
+
+Questions.hasMany(Answers);
+Answers.belongsTo(Questions, {
+  foreignKey: 'questionId',
+});
+
+//Questions.$queueFailure(new Error('My test error'));
 
 module.exports.db = dbMock;
 module.exports.Questions = Questions;
