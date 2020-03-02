@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const SUBJECTS_AMOUNT = process.env.SUBJECTS_AMOUNT;
 
 module.exports = {
   query: {
@@ -13,7 +12,7 @@ module.exports = {
     subjectId: Joi.number()
       .integer()
       .min(1)
-      .max(Number(SUBJECTS_AMOUNT)),
+      .max(3),
     start: Joi.number()
       .integer()
       .min(0),

@@ -32,7 +32,7 @@ validate.options({
 router.post('/questions', validate(questionValidation), function(req, res) {
   bcrypt.compare(req.body.password, HASH).then(function(pass) {
     if (pass) {
-      Questions.create(req.body, {
+      Questions.findOrCreate(req.body, {
         include: [Answers],
       })
         .then(_ => {
@@ -41,7 +41,7 @@ router.post('/questions', validate(questionValidation), function(req, res) {
         })
         .catch(e => {
           res.status(500).send('Server error');
-          console.error('Error: ', e);
+          //    console.error('Error: ', e);
           return;
         });
     } else {
@@ -66,7 +66,7 @@ router.get('/questions/:id', function(req, res) {
     })
     .catch(e => {
       res.status(500).send('Server error');
-      console.error('Error: ', e);
+      //   console.error('Error: ', e);
       return;
     });
 });
@@ -102,7 +102,7 @@ router.get('/questions', validate(queryValidation), function(req, res) {
     })
     .catch(e => {
       res.status(500).send('Server error');
-      console.error('Error: ', e);
+      //   console.error('Error: ', e);
       return;
     });
 });
@@ -119,7 +119,7 @@ router.put('/questions', validate(updateValidation), function(req, res) {
           try {
             validateAnswersUpdate(question.answers, req.body.answers);
           } catch (e) {
-            console.log(e.message);
+            //console.log(e.message);
             res.status(422).send(e.message);
             return;
           }
@@ -129,21 +129,22 @@ router.put('/questions', validate(updateValidation), function(req, res) {
               if (updatedQuestion) {
                 updatedQuestion.answers.forEach(answer => {
                   answer.update(answer.dataValues).catch(e => {
+                  //  console.error('Error: ', e);
                     res.status(500).send('Server error');
-                    console.error('Error: ', e);
                     return;
                   });
                 });
                 res.status(200).send('Ok');
                 return;
               } else {
+              //  console.log('Answers updating server error');
                 res.status(500).send('Server error');
                 return;
               }
             })
             .catch(e => {
+            //  console.log('Question updating server error', e);
               res.status(500).send('Server error');
-              console.error('Error: ', e);
               return;
             });
         } else {
@@ -188,7 +189,7 @@ router.get('/start', validate(startValidation), function(req, res) {
     })
     .catch(e => {
       res.status(500).send('Server error');
-      console.error('Error: ', e);
+    //  console.error('Error: ', e);
       return;
     });
 });
