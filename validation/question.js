@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const SUBJECTS_AMOUNT = process.env.SUBJECTS_AMOUNT;
 
 module.exports = {
   body: {
@@ -10,7 +9,7 @@ module.exports = {
       .integer()
       .required()
       .min(1)
-      .max(Number(SUBJECTS_AMOUNT)),
+      .max(3),
     level: Joi.number()
       .integer()
       .required()

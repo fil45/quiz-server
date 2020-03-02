@@ -1,20 +1,8 @@
 const request = require('supertest');
 const app = require('../app');
 const _ = require('lodash');
-const { db, Questions, Answers } = require('../db');
-
-const goodQuestion = {
-  password: '123',
-  question: 'How much is the fish?',
-  subjectId: '1',
-  level: '1',
-  answers: [
-    { answer: '42', isCorrect: true },
-    { answer: '15', isCorrect: false },
-    { answer: 'Many', isCorrect: false },
-    { answer: 'One', isCorrect: false },
-  ],
-};
+const { Questions } = require('../db');
+const { postQuestion: goodQuestion } = require('./mockObjects');
 
 let question;
 
@@ -26,6 +14,9 @@ const test = async (question, code) => {
 };
 
 beforeEach(() => {
+  Questions.$queryInterface.$clearQueue();
+  Questions.$queryInterface.$clearResults();
+  Questions.$queryInterface.$clearHandlers();
   question = _.cloneDeep(goodQuestion);
 });
 
@@ -85,7 +76,11 @@ describe('POSTing a question...', function() {
     await test(question, 422);
   });
 
-  it('should return 500 if there is no connection with db', async function() {
-    await test(question, 500);
+  it('should return 500 in case of db error', async function() {
+    Questions.$queryInterface.$queueFailure('Error in posting a question');
+    await request(app)
+      .post('/api/v1/questions')
+      .send(question)
+      .expect(500);
   });
 });
